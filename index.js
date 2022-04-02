@@ -13,18 +13,18 @@ const NOTION_URL      = 'https://api.notion.com/v1'
 const SERVER_ID       = '955757807578279956'
 const DATABASE_ID     = process.env.DATABASE_ID
 const NOTION_TOKEN = process.env.NOTION_TOKEN
+const headers = {
+    headers: {
+        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-02-22'
+    }
+}
 
 
-const createOption = (summary) => {
+const createData = (summary) => {
     const { title, cover, isbn } = summary
     const url = cover || DUMY_URL
-    const headers = {
-        headers: {
-            'Authorization': `Bearer ${NOTION_TOKEN}`,
-            'Content-Type': 'application/json',
-            'Notion-Version': '2022-02-22'
-        }
-    }
 
     const data = {
         parent: { database_id: DATABASE_ID },
@@ -67,26 +67,16 @@ const createOption = (summary) => {
         }
     }
 
-    return {
-        data,
-        headers
-    }
+    return data
 }
 
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return
-    const headers = {
-        headers: {
-            'Authorization': `Bearer ${NOTION_TOKEN}`,
-            'Content-Type': 'application/json',
-            'Notion-Version': '2022-02-22'
-        }
-    }
 
     if (interaction.commandName === "delete") {
-        const optionText = interaction.options.getString('ページ')
+        const userDeletePageId = interaction.options.getString('ページ')
         try {
-            await axios.patch(`${NOTION_URL}/pages/${optionText}`, {archived: true}, headers)
+            await axios.patch(`${NOTION_URL}/pages/${userDeletePageId}`, {archived: true}, headers)
             interaction.reply('ページが削除されました')
         } catch (error) {
             console.log(error)
@@ -175,7 +165,7 @@ client.on('messageCreate', async (message) => {
                 const url = summary.cover || DUMY_URL
 
                 // notion api
-                await axios.post(`${NOTION_URL}/pages`, createOption(summary).data, createOption(summary).headers)
+                await axios.post(`${NOTION_URL}/pages`, createData(summary), headers)
                 channel.send({
                     content: 'Notionに追加されました！',
                     embeds: [{
