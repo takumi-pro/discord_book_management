@@ -10,12 +10,13 @@ const ISBN_PATTERN    = /(ISBN[-]*(1[03])*[ ]*(: ){0,1})*(([0-9Xx][- ]*){13}|([0
 const GOOLE_BOOKS_URL = 'https://www.googleapis.com/books/v1/volumes?q='
 const OPENDB_URL      = 'https://api.openbd.jp/v1/get?isbn='
 const NOTION_URL      = 'https://api.notion.com/v1'
+const SERVER_ID       = '955757807578279956'
 const DATABASE_ID     = process.env.DATABASE_ID
 const NOTION_TOKEN = process.env.NOTION_TOKEN
 
 
 const createOption = (summary) => {
-    const { title, cover, author, isbn } = summary
+    const { title, cover, isbn } = summary
     const url = cover || DUMY_URL
     const headers = {
         headers: {
@@ -130,10 +131,10 @@ client.on('interactionCreate', async (interaction) => {
     }
 
     if (interaction.commandName === "search") {
-        const optionText = interaction.options.getString('検索ワード')
+        const userSearchText = interaction.options.getString('検索ワード')
         try {
             // urlのエンコードが必要
-            const encodeUrl = encodeURI(`${GOOLE_BOOKS_URL}${optionText}`)
+            const encodeUrl = encodeURI(`${GOOLE_BOOKS_URL}${userSearchText}`)
             const googleBooksRes = await axios.get(encodeUrl)
             const items = googleBooksRes.data.items.slice(0, 5)
             const fields = []
@@ -146,7 +147,7 @@ client.on('interactionCreate', async (interaction) => {
 
             interaction.reply({
                 embeds: [{
-                    title: '検索結果',
+                    title: `「${userSearchText}」の検索結果`,
                     fields: fields,
                     color: 4303284,
                     timestamp: new Date()
@@ -162,8 +163,8 @@ client.on('interactionCreate', async (interaction) => {
 client.on('messageCreate', async (message) => {
     if (message.author === client.user) return;
 
-    if (!message.author.bot && message.channel.id === '955757807578279956') {
-        const channel = client.channels.cache.get('955757807578279956')
+    if (!message.author.bot && message.channel.id === SERVER_ID) {
+        const channel = client.channels.cache.get(SERVER_ID)
         const userContent = message.content
 
         if (ISBN_PATTERN.test(userContent)) {
